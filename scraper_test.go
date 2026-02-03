@@ -65,7 +65,7 @@ func TestZenRowsMLSListingPage(t *testing.T) {
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
 		UsePremiumProxies: true,
-		ProxyCountry:      "US",
+		ProxyCountry:      "us",
 		WaitMilliseconds:  30000,
 		CSSExtractor:      MarshalExtractor(pageResp),
 		CustomParams: map[string]string{
@@ -135,7 +135,7 @@ func TestZenRowsMLSRawHTML(t *testing.T) {
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
 		UsePremiumProxies: true,
-		ProxyCountry:      "US",
+		ProxyCountry:      "us",
 		WaitMilliseconds:  30000,
 		CustomParams: map[string]string{
 			"session_id": "12345", // Maintain same IP across requests
@@ -236,7 +236,7 @@ func TestZenRowsMLSDetailPageRaw(t *testing.T) {
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
 		UsePremiumProxies: true,
-		ProxyCountry:      "US",
+		ProxyCountry:      "us",
 		WaitMilliseconds:  30000,
 	})
 	if err != nil {
@@ -278,7 +278,7 @@ func TestZenRowsMLSDetailPage(t *testing.T) {
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
 		UsePremiumProxies: true,
-		ProxyCountry:      "US",
+		ProxyCountry:      "us",
 		WaitMilliseconds:  30000,
 		CSSExtractor:      MarshalExtractor(listingResp),
 		CustomParams: map[string]string{

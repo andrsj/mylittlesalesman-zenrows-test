@@ -346,6 +346,10 @@ ZenRows now returns `RESP001` error for all mylittlesalesman.com URLs:
 | January 23 | Cloudflare bypass worked, but got challenge page | 200 | HTML with "Checking your browser" + reCAPTCHA Enterprise |
 | February 3 | ZenRows cannot reach content at all | 422 | JSON error `RESP001: Could not get content` |
 
+### Note on `proxy_country` Parameter
+
+Tested both `"US"` and `"us"` for `ProxyCountry` - no difference in results. ZenRows accepts both formats.
+
 ### Conclusion
 
 ZenRows has gone from "partially working but blocked by Cloudflare" to "completely unable to fetch content" from mylittlesalesman.com. The site's protection has likely been upgraded or ZenRows' proxies are now fully blocked.
