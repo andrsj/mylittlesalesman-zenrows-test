@@ -3,12 +3,31 @@ package mylittlesalesman_test
 import (
 	"context"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/goccy/go-json"
 	scraperapi "github.com/zenrows/zenrows-go-sdk/service/api"
 )
+
+const defaultTimeout = 5 * time.Minute
+
+// saveOutput saves the response body to output/<testName>/response.html
+func saveOutput(t *testing.T, testName string, body []byte) {
+	t.Helper()
+	outputDir := filepath.Join("output", testName)
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		t.Logf("Failed to create output directory: %v", err)
+		return
+	}
+	outputPath := filepath.Join(outputDir, "response.html")
+	if err := os.WriteFile(outputPath, body, 0644); err != nil {
+		t.Logf("Failed to write output file: %v", err)
+		return
+	}
+	t.Logf("Saved response to: %s", outputPath)
+}
 
 // PageResponse for MLS listing page
 type PageResponse struct {
@@ -34,14 +53,14 @@ func TestZenRowsMLSListingPage(t *testing.T) {
 	}
 
 	client := scraperapi.NewClient(scraperapi.WithAPIKey(apiKey))
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
 	targetURL := "https://www.mylittlesalesman.com/trucks-for-sale-i2c0f0m0?ptid=1&s=11"
 
 	pageResp := PageResponse{}
 
-	t.Logf("Fetching MLS listing page: %s", targetURL)
+	t.Logf("Fetching MLS listing page (timeout: %v): %s", defaultTimeout, targetURL)
 
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
@@ -64,6 +83,8 @@ func TestZenRowsMLSListingPage(t *testing.T) {
 	t.Logf("Response status: %d", resp.StatusCode())
 	t.Logf("Response body length: %d bytes", len(resp.Body()))
 	t.Logf("Raw response: %s", string(resp.Body()))
+
+	saveOutput(t, "TestZenRowsMLSListingPage", resp.Body())
 
 	if err := json.Unmarshal(resp.Body(), &pageResp); err != nil {
 		t.Logf("Failed to unmarshal response: %v", err)
@@ -103,12 +124,12 @@ func TestZenRowsMLSRawHTML(t *testing.T) {
 	}
 
 	client := scraperapi.NewClient(scraperapi.WithAPIKey(apiKey))
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
 	targetURL := "https://www.mylittlesalesman.com/trucks-for-sale-i2c0f0m0?ptid=1&s=11"
 
-	t.Logf("Fetching MLS raw HTML: %s", targetURL)
+	t.Logf("Fetching MLS raw HTML (timeout: %v): %s", defaultTimeout, targetURL)
 
 	// Try with session_id for IP persistence
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
@@ -131,6 +152,8 @@ func TestZenRowsMLSRawHTML(t *testing.T) {
 	t.Logf("Response status: %d", resp.StatusCode())
 	t.Logf("Response body length: %d bytes", len(resp.Body()))
 	t.Logf("First 1000 bytes: %s", string(resp.Body()[:min(1000, len(resp.Body()))]))
+
+	saveOutput(t, "TestZenRowsMLSRawHTML", resp.Body())
 }
 
 // TestZenRowsMLSSupportURL tests the exact URL that ZenRows support claimed worked.
@@ -142,13 +165,13 @@ func TestZenRowsMLSSupportURL(t *testing.T) {
 	}
 
 	client := scraperapi.NewClient(scraperapi.WithAPIKey(apiKey))
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
 	// This is the exact URL ZenRows support said works
 	targetURL := "https://www.mylittlesalesman.com/international-lt625-sleeper-semi-trucks-for-sale-i2c55f339m564445"
 
-	t.Logf("Fetching URL that ZenRows support tested: %s", targetURL)
+	t.Logf("Fetching URL that ZenRows support tested (timeout: %v): %s", defaultTimeout, targetURL)
 
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
@@ -166,6 +189,8 @@ func TestZenRowsMLSSupportURL(t *testing.T) {
 	t.Logf("Response status: %d", resp.StatusCode())
 	t.Logf("Response body length: %d bytes", len(body))
 	t.Logf("First 1500 bytes: %s", body[:min(1500, len(body))])
+
+	saveOutput(t, "TestZenRowsMLSSupportURL", resp.Body())
 
 	// Check for blocking indicators
 	if contains(body, "Checking your browser") {
@@ -201,12 +226,12 @@ func TestZenRowsMLSDetailPageRaw(t *testing.T) {
 	}
 
 	client := scraperapi.NewClient(scraperapi.WithAPIKey(apiKey))
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
 	targetURL := "https://www.mylittlesalesman.com/2022-freightliner-cascadia-126-sleeper-semi-truck-72-condo-sleeper-455hp-12-speed-automatic-14042329"
 
-	t.Logf("Fetching MLS detail page raw HTML: %s", targetURL)
+	t.Logf("Fetching MLS detail page raw HTML (timeout: %v): %s", defaultTimeout, targetURL)
 
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
@@ -222,6 +247,8 @@ func TestZenRowsMLSDetailPageRaw(t *testing.T) {
 	t.Logf("Response status: %d", resp.StatusCode())
 	t.Logf("Response body length: %d bytes", len(body))
 	t.Logf("First 1500 bytes: %s", body[:min(1500, len(body))])
+
+	saveOutput(t, "TestZenRowsMLSDetailPageRaw", resp.Body())
 
 	if contains(body, "Checking your browser") {
 		t.Logf("❌ BLOCKED: Got Cloudflare challenge page")
@@ -239,14 +266,14 @@ func TestZenRowsMLSDetailPage(t *testing.T) {
 	}
 
 	client := scraperapi.NewClient(scraperapi.WithAPIKey(apiKey))
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 
 	targetURL := "https://www.mylittlesalesman.com/2022-freightliner-cascadia-126-sleeper-semi-truck-72-condo-sleeper-455hp-12-speed-automatic-14042329"
 
 	listingResp := ListingResponse{}
 
-	t.Logf("Fetching MLS detail page: %s", targetURL)
+	t.Logf("Fetching MLS detail page (timeout: %v): %s", defaultTimeout, targetURL)
 
 	resp, err := client.Get(ctx, targetURL, &scraperapi.RequestParameters{
 		JSRender:          true,
@@ -269,6 +296,8 @@ func TestZenRowsMLSDetailPage(t *testing.T) {
 	t.Logf("Response status: %d", resp.StatusCode())
 	t.Logf("Response body length: %d bytes", len(resp.Body()))
 	t.Logf("Raw response: %s", string(resp.Body()[:min(500, len(resp.Body()))]))
+
+	saveOutput(t, "TestZenRowsMLSDetailPage", resp.Body())
 
 	if err := json.Unmarshal(resp.Body(), &listingResp); err != nil {
 		t.Logf("Failed to unmarshal response: %v", err)

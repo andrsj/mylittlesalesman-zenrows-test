@@ -302,3 +302,50 @@ github.com/gorilla/schema v1.4.1 (indirect)
 github.com/hashicorp/go-version v1.7.0 (indirect)
 golang.org/x/net v0.30.0 (indirect)
 ```
+
+---
+
+## Update: February 3, 2026
+
+### Changes
+- Increased timeout from 2 minutes to 5 minutes (`defaultTimeout = 5 * time.Minute`)
+- Added HTML output saving to `output/<testName>/response.html` for each test
+- Added `output/` to `.gitignore`
+
+### Test Results
+
+| # | Test | Duration | Result |
+|---|------|----------|--------|
+| 1 | TestZenRowsMLSListingPage | 163s | ❌ `RESP001: Could not get content` (HTTP 422) |
+| 2 | TestZenRowsMLSRawHTML | 163s | ❌ `RESP001: Could not get content` (HTTP 422) |
+| 3 | TestZenRowsMLSSupportURL | 58s | ❌ `RESP001: Could not get content` (HTTP 422) |
+| 4 | TestZenRowsMLSDetailPageRaw | 160s | ❌ `RESP001: Could not get content` (HTTP 422) |
+| 5 | TestZenRowsMLSDetailPage | ~56s | 💥 Test suite timeout (10m total) |
+
+**Total runtime:** 600s (hit Go test timeout)
+**Success rate:** 0/5 (0%)
+
+### Error Details
+
+ZenRows now returns `RESP001` error for all mylittlesalesman.com URLs:
+
+```json
+{
+  "code": "RESP001",
+  "instance": "/v1",
+  "status": 422,
+  "title": "Could not get content (RESP001)",
+  "type": "https://docs.zenrows.com/api-error-codes#RESP001"
+}
+```
+
+### Comparison: January vs February
+
+| Date | Error Type | HTTP Status | ZenRows Response |
+|------|------------|-------------|------------------|
+| January 23 | Cloudflare bypass worked, but got challenge page | 200 | HTML with "Checking your browser" + reCAPTCHA Enterprise |
+| February 3 | ZenRows cannot reach content at all | 422 | JSON error `RESP001: Could not get content` |
+
+### Conclusion
+
+ZenRows has gone from "partially working but blocked by Cloudflare" to "completely unable to fetch content" from mylittlesalesman.com. The site's protection has likely been upgraded or ZenRows' proxies are now fully blocked.
